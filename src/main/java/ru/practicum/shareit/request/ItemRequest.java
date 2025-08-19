@@ -1,7 +1,9 @@
 package ru.practicum.shareit.request;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
-import ru.practicum.shareit.user.User;
+import lombok.NoArgsConstructor;
+import ru.practicum.shareit.user.model.User;
 
 import java.time.Instant;
 
@@ -9,6 +11,8 @@ import java.time.Instant;
  * TODO Sprint add-item-requests.
  */
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class ItemRequest {
     private Long id;
     private String description;
