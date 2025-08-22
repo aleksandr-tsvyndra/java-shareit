@@ -93,13 +93,9 @@ public class UserServiceImpl implements UserService {
     private void updateFields(User user, UpdateUserDto dto) {
         if (dto.hasEmail() && dto.getEmail().matches(".*")) {
             if (!dto.getEmail().equals(user.getEmail())) {
-                try {
-                    checkEmail(dto.getEmail());
-                    user.setEmail(dto.getEmail());
-                    log.info("Имейл юзера с id {} был успешно обновлен", user.getId());
-                } catch (DuplicateEmailException e) {
-                    log.info("Имейл юзера с id {} обновить не получилось", user.getId());
-                }
+                checkEmail(dto.getEmail());
+                user.setEmail(dto.getEmail());
+                log.info("Имейл юзера с id {} был успешно обновлен", user.getId());
             }
         }
         if (dto.hasName() && !dto.getName().equals(user.getName())) {

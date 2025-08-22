@@ -19,5 +19,4 @@ public class UpdateItemDto {
     public boolean hasAvailable() {
         return available != null;
     }
-
 }
