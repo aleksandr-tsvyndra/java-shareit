@@ -57,11 +57,12 @@ public class ItemServiceImpl implements ItemService {
             log.info("Передано пустое значение подстроки. Возвращаем пустую коллекцию на уровень контроллера");
             return List.of();
         }
+        String formattedText = text.toLowerCase();
         Collection<ItemDto> items = itemRepository.findAll()
                 .stream()
                 .filter(Item::getAvailable)
-                .filter(i -> i.getName().toLowerCase().contains(text.toLowerCase())
-                        || i.getDescription().toLowerCase().contains(text.toLowerCase()))
+                .filter(i -> i.getName().toLowerCase().contains(formattedText)
+                        || i.getDescription().toLowerCase().contains(formattedText))
                 .map(itemMapper::mapToItemDto)
                 .toList();
         log.info("Доступные вещи, найденные по вхождению подстроки, передаются в контроллер...");
