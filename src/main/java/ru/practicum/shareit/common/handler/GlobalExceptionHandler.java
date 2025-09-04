@@ -8,7 +8,9 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import ru.practicum.shareit.common.exceptions.DuplicateEmailException;
+import ru.practicum.shareit.common.exceptions.IllegalOperationException;
 import ru.practicum.shareit.common.exceptions.NotFoundException;
+import ru.practicum.shareit.common.exceptions.ValidationException;
 import ru.practicum.shareit.common.handler.model.ErrorResponse;
 
 @Slf4j
@@ -38,9 +40,23 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler
     @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorResponse handleValidation(final ValidationException e) {
+        log.warn("Неудавшаяся попытка валидации данных: {}", e.getMessage());
+        return new ErrorResponse("Ошибка валидации", e.getMessage());
+    }
+
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ErrorResponse handleMethodArgumentNotValid(final MethodArgumentNotValidException e) {
         log.warn("Некорректные данные от пользователя: {}", e.getBody());
         return new ErrorResponse("Ошибка валидации", e.getMessage());
+    }
+
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorResponse handleIllegalOperation(final IllegalOperationException e) {
+        log.warn("Попытка выполнить недоступную операцию: {}", e.getMessage());
+        return new ErrorResponse("Ошибка доступа", e.getMessage());
     }
 
     @ExceptionHandler

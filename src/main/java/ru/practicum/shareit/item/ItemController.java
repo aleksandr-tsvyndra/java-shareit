@@ -17,7 +17,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import ru.practicum.shareit.item.comment.CommentDto;
+import ru.practicum.shareit.item.comment.NewCommentDto;
 import ru.practicum.shareit.item.dto.ItemDto;
+import ru.practicum.shareit.item.dto.ItemDtoComplete;
 import ru.practicum.shareit.item.dto.NewItemDto;
 import ru.practicum.shareit.item.dto.UpdateItemDto;
 import ru.practicum.shareit.item.service.ItemService;
@@ -33,9 +36,9 @@ public class ItemController {
     private final ItemService itemService;
 
     @GetMapping
-    public Collection<ItemDto> getAll(@RequestHeader("X-Sharer-User-Id") @Positive long userId) {
+    public Collection<ItemDtoComplete> getAll(@RequestHeader("X-Sharer-User-Id") @Positive long userId) {
         log.info("Контроллер получил http-запрос на вывод вещей юзера с id {}", userId);
-        Collection<ItemDto> userItems = itemService.getAll(userId);
+        Collection<ItemDtoComplete> userItems = itemService.getAll(userId);
         log.info("Возвращаем список вещей юзера с id {} в http-ответе", userId);
         return userItems;
     }
@@ -50,9 +53,9 @@ public class ItemController {
     }
 
     @GetMapping("/{id}")
-    public ItemDto getById(@PathVariable(name = "id") @Positive long itemId) {
+    public ItemDtoComplete getById(@PathVariable(name = "id") @Positive long itemId) {
         log.info("Контроллер получил http-запрос на вывод вещи с id {}", itemId);
-        ItemDto item = itemService.getById(itemId);
+        ItemDtoComplete item = itemService.getById(itemId);
         log.info("Возвращаем вещь с id {} в http-ответе", itemId);
         return item;
     }
@@ -83,5 +86,16 @@ public class ItemController {
         log.info("Контроллер получил http-запрос на удаление вещи с id {} юзером с id {}", itemId, userId);
         itemService.delete(userId, itemId);
         log.info("Юзер с id {} успешно удалил вещь с id {} из БД", userId, itemId);
+    }
+
+    @PostMapping("/{id}/comment")
+    public CommentDto addComment(@RequestHeader("X-Sharer-User-Id") @Positive long userId,
+                                 @PathVariable(name = "id") @Positive long itemId,
+                                 @Valid @RequestBody NewCommentDto dto) {
+        log.info("Контроллер получил http-запрос на добавление комментария");
+        log.info("Юзер с id {} хочет оставить комментарий к вещи с id {}", userId, itemId);
+        CommentDto newComment = itemService.addComment(userId, itemId, dto);
+        log.info("Юзер с id {} успешно оставил комментарий к вещи с id {}", userId, itemId);
+        return newComment;
     }
 }

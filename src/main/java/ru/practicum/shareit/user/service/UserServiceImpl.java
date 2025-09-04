@@ -3,9 +3,9 @@ package ru.practicum.shareit.user.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.common.exceptions.DuplicateEmailException;
 import ru.practicum.shareit.common.exceptions.NotFoundException;
-import ru.practicum.shareit.item.repository.ItemRepository;
 import ru.practicum.shareit.user.dto.NewUserDto;
 import ru.practicum.shareit.user.dto.UpdateUserDto;
 import ru.practicum.shareit.user.dto.UserDto;
@@ -20,7 +20,6 @@ import java.util.Collection;
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
-    private final ItemRepository itemRepository;
     private final UserMapper userMapper;
 
     @Override
@@ -45,44 +44,40 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public UserDto create(NewUserDto dto) {
         log.info("Запрос на создание нового юзера передан в сервис");
         checkEmail(dto.getEmail());
         log.info("Имейл нового юзера уникален");
-        User user = userRepository.create(userMapper.mapToUser(dto));
+        User user = userRepository.save(userMapper.mapToUser(dto));
         log.info("Созданный юзер с id {} получен из репозитория и передаётся в контроллер", user.getId());
         return userMapper.mapToUserDto(user);
     }
 
     @Override
+    @Transactional
     public UserDto update(long userId, UpdateUserDto dto) {
         log.info("Запрос на апдейт юзера с id {} передан в сервис", userId);
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("Юзер с id " + userId + " не найден"));
         updateFields(user, dto);
-        User updateUser = userRepository.update(user);
+        User updateUser = userRepository.save(user);
         log.info("Обновлённый юзер с id {} получен из репозитория и передаётся в контроллер", userId);
         return userMapper.mapToUserDto(updateUser);
     }
 
     @Override
+    @Transactional
     public void delete(long userId) {
         log.info("Запрос на удаление юзера с id {} передан в сервис", userId);
         getById(userId);
-        log.info("Перед удалением юзера получаем и удаляем все его вещи из БД");
-        itemRepository.findAll()
-                .stream()
-                .filter(i -> i.getOwner().getId().equals(userId))
-                .forEach(i -> itemRepository.delete(i.getId()));
-        userRepository.delete(userId);
+        log.info("Юзер с id {} успешно найден в БД и будет удалён", userId);
+        userRepository.deleteById(userId);
     }
 
     private void checkEmail(String email) {
         log.info("Проверяем имейл при создании юзера на дубликат");
-        boolean hasDuplicateEmail = getAll()
-                .stream()
-                .map(UserDto::getEmail)
-                .anyMatch(email::equals);
+        boolean hasDuplicateEmail = userRepository.existsByEmailIgnoreCase(email);
         if (hasDuplicateEmail) {
             var message = String.format("Имейл %s уже занят другим юзером", email);
             log.warn(message);
