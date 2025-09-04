@@ -31,7 +31,7 @@ public class BookingController {
 
     @GetMapping
     public Collection<BookingDto> getUserBookings(@RequestHeader("X-Sharer-User-Id") @Positive long bookerId,
-                                                  @RequestParam(required = false, defaultValue = "ALL") String state) {
+                                                  @RequestParam(defaultValue = "ALL") String state) {
         log.info("Контроллер получил http-запрос на получение списка всех бронирований юзера с id {}", bookerId);
         Collection<BookingDto> userBookings = bookingService.findAllByBooker(bookerId, state);
         log.info("Возвращаем список всех бронирований юзера с id {} в http-ответе", bookerId);
@@ -40,7 +40,7 @@ public class BookingController {
 
     @GetMapping("/owner")
     public Collection<BookingDto> getOwnerBookings(@RequestHeader("X-Sharer-User-Id") @Positive long ownerId,
-                                                   @RequestParam(required = false, defaultValue = "ALL") String state) {
+                                                   @RequestParam(defaultValue = "ALL") String state) {
         log.info("Контроллер получил http-запрос на получение списка бронирований для всех вещей владельца");
         log.info("Id владельца вещей: {}", ownerId);
         Collection<BookingDto> ownerBookings = bookingService.findAllByOwner(ownerId, state);
