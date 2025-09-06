@@ -12,4 +12,5 @@ public class NewItemDto {
     private String description;
     @NotNull(message = "Статус доступности вещи должен быть указан")
     private Boolean available;
+    private Long requestId;
 }

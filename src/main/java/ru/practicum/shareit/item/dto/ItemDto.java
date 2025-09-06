@@ -1,6 +1,7 @@
 package ru.practicum.shareit.item.dto;
 
 import lombok.Data;
+import ru.practicum.shareit.request.dto.ItemRequestDtoShort;
 import ru.practicum.shareit.user.dto.UserDto;
 
 @Data
@@ -10,4 +11,5 @@ public class ItemDto {
     private String description;
     private Boolean available;
     private UserDto sharer;
+    private ItemRequestDtoShort request;
 }

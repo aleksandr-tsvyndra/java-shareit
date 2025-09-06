@@ -23,6 +23,8 @@ import ru.practicum.shareit.item.comment.CommentMapper;
 import ru.practicum.shareit.item.mapper.ItemMapper;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.ItemRepository;
+import ru.practicum.shareit.request.model.ItemRequest;
+import ru.practicum.shareit.request.repository.ItemRequestRepository;
 import ru.practicum.shareit.user.mapper.UserMapper;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
@@ -42,6 +44,7 @@ public class ItemServiceImpl implements ItemService {
     private final ItemRepository itemRepository;
     private final BookingRepository bookingRepository;
     private final CommentRepository commentRepository;
+    private final ItemRequestRepository itemRequestRepository;
 
     private final UserMapper userMapper;
     private final ItemMapper itemMapper;
@@ -59,6 +62,7 @@ public class ItemServiceImpl implements ItemService {
                 .map(itemMapper::mapToItemDtoComplete)
                 .peek(this::setItemBookings)
                 .peek(this::setItemComments)
+                .peek(this::setItemsToRequest)
                 .toList();
         log.info("Список вещей юзера получен из репозитория и передаётся в контроллер...");
         return items;
@@ -71,6 +75,7 @@ public class ItemServiceImpl implements ItemService {
                 .orElseThrow(() -> new NotFoundException("Вещь с id " + itemId + " не найдена"));
         ItemDtoComplete itemToReturn = itemMapper.mapToItemDtoComplete(item);
         setItemComments(itemToReturn);
+        setItemsToRequest(itemToReturn);
         log.info("Вещь с id {} получена из репозитория и передаётся в контроллер...", itemId);
         return itemToReturn;
     }
@@ -99,6 +104,13 @@ public class ItemServiceImpl implements ItemService {
                 .orElseThrow(() -> new NotFoundException("Юзер с id " + userId + " не найден"));
         Item newItem = itemMapper.mapToItem(dto);
         newItem.setSharer(user);
+        if (dto.getRequestId() != null) {
+            ItemRequest itemRequest = itemRequestRepository.findById(dto.getRequestId())
+                    .orElseThrow(() -> new NotFoundException("Запрос с id " + dto.getRequestId() + " не найден"));
+            newItem.setRequest(itemRequest);
+        } else {
+            log.info("Создаваемая вещь никак не связана с запросом");
+        }
         Item itemToReturn = itemRepository.save(newItem);
         log.info("Результат создания вещи получен из репозитория и передаётся в контроллер...");
         return itemMapper.mapToItemDto(itemToReturn);
@@ -191,5 +203,15 @@ public class ItemServiceImpl implements ItemService {
                 .map(commentMapper::mapToCommentDto)
                 .toList();
         item.setComments(comments);
+    }
+
+    private void setItemsToRequest(ItemDtoComplete item) {
+        if (item.getRequest() != null) {
+            Collection<ItemDto> items = itemRepository.findByRequestIdIn(List.of(item.getRequest().getId()))
+                    .stream()
+                    .map(itemMapper::mapToItemDto)
+                    .toList();
+            item.getRequest().setItems(items);
+        }
     }
 }
