@@ -1,0 +1,19 @@
+server.port: 8080
+
+logging:
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} %-5level [%X{traceId}] %logger{36}: %msg%n"
+  level:
+    org.springframework.web.client.RestTemplate: DEBUG
+    org.apache.http: DEBUG
+    httpclient.wire: DEBUG
+    ru.practicum.shareit: DEBUG
+
+management:
+  endpoints:
+    web:
+      base-path: /actuator
+      exposure:
+        include: health
+
+shareit-server.url: "http://localhost:9090"
