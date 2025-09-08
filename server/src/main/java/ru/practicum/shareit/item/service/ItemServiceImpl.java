@@ -79,6 +79,9 @@ public class ItemServiceImpl implements ItemService {
         ItemDtoComplete itemToReturn = itemMapper.mapToItemDtoComplete(item);
         setItemComments(itemToReturn);
         setItemsToRequest(itemToReturn);
+        if (item.getSharer().getId().equals(ownerId)) {
+            setItemBookings(itemToReturn);
+        }
         log.info("Вещь с id {} получена из репозитория и передаётся в контроллер...", itemId);
         return itemToReturn;
     }
@@ -168,7 +171,7 @@ public class ItemServiceImpl implements ItemService {
         Comment comment = commentMapper.mapToComment(dto);
         comment.setItem(item);
         comment.setAuthor(author);
-        commentRepository.save(comment);
+        comment = commentRepository.save(comment);
         log.info("Сохранили новый отзыв в БД");
         CommentDto toReturn = commentMapper.mapToCommentDto(comment);
         log.info("Возвращаем данные о созданном отзыве в контроллер");
@@ -192,9 +195,14 @@ public class ItemServiceImpl implements ItemService {
                 LocalDateTime.now(), BookingStatus.APPROVED, SORT_BOOKING_END_DESC);
         Booking nextBooking = bookingRepository.findFirstBookingByItemIdAndEndIsAfterAndStatus(item.getId(),
                 LocalDateTime.now(), BookingStatus.APPROVED, SORT_BOOKING_END_DESC);
-
-        item.setLastBooking(bookingMapper.mapToBookingDtoShort(lastBooking));
-        item.setNextBooking(bookingMapper.mapToBookingDtoShort(nextBooking));
+        if (lastBooking != null) {
+            item.setLastBooking(bookingMapper.mapToBookingDtoShort(lastBooking));
+            item.getLastBooking().setBookerId(lastBooking.getBooker().getId());
+        }
+        if (nextBooking != null) {
+            item.setNextBooking(bookingMapper.mapToBookingDtoShort(nextBooking));
+            item.getNextBooking().setBookerId(nextBooking.getBooker().getId());
+        }
     }
 
     private void setItemComments(ItemDtoComplete item) {
